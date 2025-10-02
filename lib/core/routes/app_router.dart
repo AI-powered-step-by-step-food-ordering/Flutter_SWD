@@ -27,6 +27,12 @@ class AppRoutes {
 
 // Router Configuration
 class AppRouter {
+  // Method to reset splash screen flag (useful for testing)
+  static Future<void> resetSplashFlag() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('has_seen_splash');
+  }
+  
   static GoRouter get router => GoRouter(
     initialLocation: AppRoutes.splash,
     routes: [
@@ -138,12 +144,24 @@ class AppRouter {
     // Error handling
     errorBuilder: (context, state) => const ErrorScreen(),
 
-    // Route guard - simplified (no splash redirect, just auth if needed)
-    redirect: (context, state) {
+    // Route guard - handle splash screen logic
+    redirect: (context, state) async {
+      // Check if this is the splash screen route
+      if (state.uri.path == AppRoutes.splash) {
+        // Check if splash has been shown before
+        final prefs = await SharedPreferences.getInstance();
+        final hasSeenSplash = prefs.getBool('has_seen_splash') ?? false;
+        
+        if (hasSeenSplash) {
+          // Skip splash and go directly to home
+          return AppRoutes.home;
+        }
+      }
+      
       // Add authentication logic here if needed
       // Example: Check if user is logged in
       // final isLoggedIn = getIt<AuthService>().isLoggedIn;
-      // if (!isLoggedIn && state.location != AppRoutes.login) {
+      // if (!isLoggedIn && state.uri.path != AppRoutes.login) {
       //   return AppRoutes.login;
       // }
 
@@ -187,8 +205,12 @@ class _SplashScreenState extends State<SplashScreen>
     _animationController.forward();
 
     // Navigate to home after 3 seconds
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 3), () async {
         if (mounted) {
+          // Mark that splash has been shown
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('has_seen_splash', true);
+          
           GoRouter.of(context).go('/home');
       }
     });
