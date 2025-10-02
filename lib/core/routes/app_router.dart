@@ -1,5 +1,9 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+// Feature imports
+import '../../features/menu/presentation/pages/menu_screen.dart';
 
 // Route names
 class AppRoutes {
@@ -52,7 +56,7 @@ class AppRouter {
         builder: (context, state) => const RegisterScreen(),
       ),
 
-      // Main App Routes
+      // Main App Routes - Clean HomeScreen without splash logic
       GoRoute(
         path: AppRoutes.home,
         name: 'home',
@@ -134,14 +138,15 @@ class AppRouter {
     // Error handling
     errorBuilder: (context, state) => const ErrorScreen(),
 
-    // Route guard (optional)
+    // Route guard - simplified (no splash redirect, just auth if needed)
     redirect: (context, state) {
-      // Add authentication logic here
+      // Add authentication logic here if needed
       // Example: Check if user is logged in
       // final isLoggedIn = getIt<AuthService>().isLoggedIn;
       // if (!isLoggedIn && state.location != AppRoutes.login) {
       //   return AppRoutes.login;
       // }
+
       return null;
     },
   );
@@ -183,8 +188,8 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Navigate to home after 3 seconds
     Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        GoRouter.of(context).go('/home');
+        if (mounted) {
+          GoRouter.of(context).go('/home');
       }
     });
   }
@@ -198,84 +203,142 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
-      body: Center(
-        child: AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            return FadeTransition(
-              opacity: _fadeAnimation,
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // App Logo/Icon
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF52946B), // Primary green
+              Color(0xFF2E7D32), // Darker green
+            ],
+          ),
+        ),
+        child: Center(
+          child: AnimatedBuilder(
+            animation: _animationController,
+            builder: (context, child) {
+              return FadeTransition(
+                opacity: _fadeAnimation,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // App Logo with AI and Food elements
+                      Container(
+                        width: 140,
+                        height: 140,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(35),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.15),
+                              blurRadius: 25,
+                              offset: const Offset(0, 12),
+                            ),
+                          ],
+                        ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Background food icon
+                            const Icon(
+                              Icons.restaurant,
+                              size: 70,
+                              color: Color(0xFF52946B),
+                            ),
+                            // AI sparkle effect
+                            Positioned(
+                              top: 15,
+                              right: 15,
+                              child: Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF2E7D32),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.auto_awesome,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+
+                      // App Name with AI emphasis
+                      const Text(
+                        'AI Food Ordering',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Enhanced tagline
+                      const Text(
+                        'Smart AI Recommendations\nfor Delicious Food',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w400,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 60),
+
+                      // Modern loading indicator with AI theme
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Center(
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              strokeWidth: 2.5,
+                            ),
                           ),
-                        ],
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.restaurant_menu,
-                        size: 60,
-                        color: Color(0xFF2E7D32),
-                      ),
-                    ),
-                    const SizedBox(height: 30),
+                      const SizedBox(height: 20),
 
-                    // App Name
-                    const Text(
-                      'AI Food Ordering',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: 1.2,
+                      // Loading text
+                      const Text(
+                        'Preparing your experience...',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white60,
+                          fontWeight: FontWeight.w300,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Tagline
-                    const Text(
-                      'Smart Recommendations, Delicious Food',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white70,
-                        fontWeight: FontWeight.w300,
-                      ),
-                    ),
-                    const SizedBox(height: 50),
-
-                    // Loading indicator
-                    const SizedBox(
-                      width: 30,
-                      height: 30,
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        strokeWidth: 3,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
   }
 }
-
+  
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
 
@@ -308,6 +371,10 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return _buildHomeContent(context);
+  }
+
+  Widget _buildHomeContent(BuildContext context) {
     const primaryGreen = Color(0xFF52946B);
     const textDark = Color(0xFF0D1A12);
     const cardBg = Color(0xFFF2F9F5);
@@ -320,7 +387,10 @@ class HomeScreen extends StatelessWidget {
             children: [
               // Header with Home title and cart icon
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -597,18 +667,46 @@ class HomeScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _buildNavItem(Icons.home, 'Home', true, primaryGreen, textDark),
-            _buildNavItem(Icons.apps, 'AI Order', false, primaryGreen, textDark, () {
-              GoRouter.of(context).go('/ai-recommendations');
-            }),
-            _buildNavItem(Icons.receipt_long, 'Menu', false, primaryGreen, textDark, () {
-              GoRouter.of(context).go('/menu');
-            }),
-            _buildNavItem(Icons.shopping_cart_outlined, 'Cart', false, primaryGreen, textDark, () {
-              GoRouter.of(context).go('/cart');
-            }),
-            _buildNavItem(Icons.person_outline, 'Profile', false, primaryGreen, textDark, () {
-              GoRouter.of(context).go('/profile');
-            }),
+            _buildNavItem(
+              Icons.apps,
+              'AI Order',
+              false,
+              primaryGreen,
+              textDark,
+              () {
+                GoRouter.of(context).go('/ai-recommendations');
+              },
+            ),
+            _buildNavItem(
+              Icons.receipt_long,
+              'Menu',
+              false,
+              primaryGreen,
+              textDark,
+              () {
+                GoRouter.of(context).go('/menu');
+              },
+            ),
+            _buildNavItem(
+              Icons.shopping_cart_outlined,
+              'Cart',
+              false,
+              primaryGreen,
+              textDark,
+              () {
+                GoRouter.of(context).go('/cart');
+              },
+            ),
+            _buildNavItem(
+              Icons.person_outline,
+              'Profile',
+              false,
+              primaryGreen,
+              textDark,
+              () {
+                GoRouter.of(context).go('/profile');
+              },
+            ),
           ],
         ),
       ),
@@ -622,7 +720,7 @@ class HomeScreen extends StatelessWidget {
     Color backgroundColor,
   ) {
     const textDark = Color(0xFF0D1A12);
-    
+
     return GestureDetector(
       onTap: () => GoRouter.of(context).go('/menu'),
       child: Container(
@@ -715,15 +813,6 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-class MenuScreen extends StatelessWidget {
-  const MenuScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('Menu Screen')));
   }
 }
 
